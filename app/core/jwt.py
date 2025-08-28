@@ -1,4 +1,3 @@
-# app/core/jwt.py
 from datetime import datetime, timedelta
 import jwt
 
@@ -26,7 +25,22 @@ def create_email_token(data: dict, expires_delta: timedelta | None = None):
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
+def decode_token(token: str):
+    """
+    액세스/리프레시 토큰 디코딩
+    """
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload
+    except jwt.ExpiredSignatureError:
+        return None
+    except jwt.InvalidTokenError:
+        return None
+
 def decode_email_token(token: str):
+    """
+    이메일 인증 토큰 디코딩
+    """
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
