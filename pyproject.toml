@@ -1,0 +1,7 @@
+version = "0.1.0"
+readme = "README.md"
+
+[tool.aerich]
+tortoise_orm = "app.db.database.TORTOISE_ORM"
+location = "./migrations"
+src_folder = "./."
