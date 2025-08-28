@@ -16,7 +16,7 @@ TORTOISE_ORM = {
     "connections": {"default": DB_URL},
     "apps": {
         "models": {
-            "models": ["app.models", "aerich.models"],  # ✅ aerich.models 추가
+            "models": ["app.models", "aerich.models"],  
             "default_connection": "default",
         }
     }
@@ -29,7 +29,7 @@ async def init_db():
         modules={"models": ["app.models"]}
     )
     await Tortoise.generate_schemas()
-    print("✅ Database initialized successfully.")
+    print(" Database initialized successfully.")
 
 # DB 종료
 async def close_db():
