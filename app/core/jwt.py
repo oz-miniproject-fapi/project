@@ -3,9 +3,9 @@ import jwt
 
 SECRET_KEY = "abfadd5caf9a2d271dc0287893f31c2907de4aef1c16c8ac6f2d63b2e7395aba"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60  # 1시간
-REFRESH_TOKEN_EXPIRE_DAYS = 7     # 7일
-EMAIL_TOKEN_EXPIRE_MINUTES = 60   # 이메일 인증 1시간
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
+REFRESH_TOKEN_EXPIRE_DAYS = 7
+EMAIL_TOKEN_EXPIRE_MINUTES = 60
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
@@ -26,9 +26,6 @@ def create_email_token(data: dict, expires_delta: timedelta | None = None):
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 def decode_token(token: str):
-    """
-    액세스/리프레시 토큰 디코딩
-    """
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
@@ -38,9 +35,6 @@ def decode_token(token: str):
         return None
 
 def decode_email_token(token: str):
-    """
-    이메일 인증 토큰 디코딩
-    """
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
