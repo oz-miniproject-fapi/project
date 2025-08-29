@@ -69,25 +69,4 @@ class DiaryService:
         await diary.tags.remove(tag)
         return True
 
-    # ---------------- Transaction ----------------
-    @staticmethod
-    async def create_transaction(user: User, data):
-        trans_obj = await TransactionHistory.create(user=user, **data)
-        return trans_obj
 
-    @staticmethod
-    async def get_transactions(user: User):
-        return TransactionHistory.filter(user=user)
-
-    @staticmethod
-    async def get_transaction(user: User, trans_id: int):
-        trans = await TransactionHistory.get_or_none(id=trans_id, user=user)
-        if not trans:
-            raise DoesNotExist("Transaction not found")
-        return trans
-
-    @staticmethod
-    async def delete_transaction(user: User, trans_id: int):
-        trans = await DiaryService.get_transaction(user, trans_id)
-        await trans.delete()
-        return True
