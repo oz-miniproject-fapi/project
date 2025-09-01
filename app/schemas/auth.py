@@ -1,47 +1,37 @@
 # app/schemas/auth.py
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr
 from typing import Optional
+from datetime import datetime
 
-# -------------------------------
-# 회원가입 요청 (Request Body)
-# -------------------------------
-class SignupRequest(BaseModel):
+# --- 회원가입 ---
+class UserSignupRequest(BaseModel):
     email: EmailStr
-    password: str = Field(..., min_length=6)
+    password: str
     nickname: Optional[str] = None
     name: Optional[str] = None
-    phone_number: Optional[str] = None
+    phone: Optional[str] = None
 
-# -------------------------------
-# 회원가입 응답 (Response Body)
-# -------------------------------
-class SignupResponse(BaseModel):
-    user_id: int
-    msg: str = "회원가입이 완료되었습니다."
+class UserSignupResponse(BaseModel):
+    id: int
+    email: EmailStr
+    nickname: Optional[str] = None
+    name: Optional[str] = None
+    phone: Optional[str] = None
+    created_at: datetime
 
-# -------------------------------
-# 로그인 요청 (Request Body)
-# -------------------------------
-class LoginRequest(BaseModel):
+# --- 로그인 ---
+class UserLoginRequest(BaseModel):
     email: EmailStr
     password: str
 
-# -------------------------------
-# 로그인 응답 (Response Body)
-# -------------------------------
-class TokenResponse(BaseModel):
+class UserLoginResponse(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
 
-# -------------------------------
-# 로그아웃 요청 (Request Body)
-# -------------------------------
-class LogoutRequest(BaseModel):
+# --- 로그아웃 ---
+class UserLogoutRequest(BaseModel):
     refresh_token: str
 
-# -------------------------------
-# 로그아웃 응답 (Response Body)
-# -------------------------------
-class LogoutResponse(BaseModel):
-    detail: str = "Successfully logged out"
+class UserLogoutResponse(BaseModel):
+    message: str = "Logout successful"

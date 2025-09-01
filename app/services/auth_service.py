@@ -1,66 +1,59 @@
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
-from passlib.context import CryptContext
+from tortoise.exceptions import DoesNotExist
 from app.models.user import User
 from app.models.token_blacklist import TokenBlacklist
-from app.core.jwt import create_access_token, create_refresh_token, create_email_token
-from app.utils.email import send_verification_email
+from passlib.context import CryptContext
+from datetime import datetime, timedelta
+import jwt
+
+SECRET_KEY = "abfadd5caf9a2d271dc0287893f31c2907de4aef1c16c8ac6f2d63b2e7395aba"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
+REFRESH_TOKEN_EXPIRE_DAYS = 7
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# -------------------------------
-# 유저 생성 (회원가입 + 이메일 인증)
-# -------------------------------
-async def create_user(db: AsyncSession, email: str, password: str, nickname: str = None, name: str = None, phone_number: str = None):
-    hashed_password = pwd_context.hash(password)
-    new_user = User(
-        email=email,
-        password=hashed_password,
-        nickname=nickname,
-        name=name,
-        phone_number=phone_number,
-        is_active=False  # 이메일 인증 전 비활성화
-    )
-    db.add(new_user)
-    await db.commit()
-    await db.refresh(new_user)
+class AuthService:
+    # 비밀번호 해싱/검증
+    def hash_password(self, password: str):
+        return pwd_context.hash(password)
 
-    # 이메일 인증 토큰 생성 및 발송
-    token = create_email_token({"sub": str(new_user.id)})
-    await send_verification_email(new_user.email, token)
+    def verify_password(self, plain_password, hashed_password):
+        return pwd_context.verify(plain_password, hashed_password)
 
-    return new_user
+    # JWT 생성
+    def create_token(self, data: dict, expires_delta: timedelta):
+        to_encode = data.copy()
+        expire = datetime.utcnow() + expires_delta
+        to_encode.update({"exp": expire})
+        encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+        return encoded_jwt
 
-# -------------------------------
-# 유저 인증 (로그인)
-# -------------------------------
-async def authenticate_user(db: AsyncSession, email: str, password: str):
-    result = await db.execute(select(User).where(User.email == email))
-    user = result.scalar_one_or_none()
-    if not user or not pwd_context.verify(password, user.password):
-        return None
-    if not user.is_active:
-        return None  # 이메일 인증 전 로그인 불가
-    return user
+    # 회원가입 (phone 파라미터 추가)
+    async def register_user(self, email: str, password: str, nickname: str = None, phone: str = None):
+        hashed_password = self.hash_password(password)
+        user = await User.create(email=email, password=hashed_password, nickname=nickname, phone=phone)
+        return user
 
-async def login_user(db: AsyncSession, email: str, password: str):
-    user = await authenticate_user(db, email, password)
-    if not user:
-        return None
+    # 로그인
+    async def login(self, email: str, password: str):
+        try:
+            user = await User.get(email=email)
+        except DoesNotExist:
+            raise ValueError("Invalid credentials")
 
-    access_token = create_access_token({"sub": str(user.id)})
-    refresh_token = create_refresh_token({"sub": str(user.id)})
+        if not self.verify_password(password, user.password):
+            raise ValueError("Invalid credentials")
 
-    return {"access_token": access_token, "refresh_token": refresh_token, "user": user}
+        access_token = self.create_token(
+            data={"sub": str(user.id)},
+            expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        )
+        refresh_token = self.create_token(
+            data={"sub": str(user.id)},
+            expires_delta=timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+        )
+        return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
 
-# -------------------------------
-# 토큰 블랙리스트
-# -------------------------------
-async def add_token_to_blacklist(db: AsyncSession, token: str):
-    db_token = TokenBlacklist(token=token)
-    db.add(db_token)
-    await db.commit()
-
-async def is_token_blacklisted(db: AsyncSession, token: str):
-    result = await db.get(TokenBlacklist, token)
-    return result is not None
+    # 로그아웃 (Refresh Token 블랙리스트)
+    async def logout(self, token: str):
+        await TokenBlacklist.create(token=token)

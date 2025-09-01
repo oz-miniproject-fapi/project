@@ -1,20 +1,17 @@
-# app/main.py
 from fastapi import FastAPI
+from app.api.v1 import auth, user  # user 라우터 추가
 from app.db.database import init_db, close_db
-from app.routers import user, auth
 
-app = FastAPI(title="My FastAPI App")
+app = FastAPI(title="FastAPI JWT Auth Example")
 
-# 앱 시작 시 DB 연결
 @app.on_event("startup")
 async def startup_event():
     await init_db()
 
-# 앱 종료 시 DB 연결 종료
 @app.on_event("shutdown")
 async def shutdown_event():
     await close_db()
 
 # 라우터 등록
-app.include_router(user.router)
 app.include_router(auth.router)
+app.include_router(user.router)  # user 라우터 등록

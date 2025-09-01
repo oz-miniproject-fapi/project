@@ -1,6 +1,5 @@
 from tortoise.models import Model
 from tortoise import fields
-from .user import User
 
 class Diary(Model):
     id = fields.IntField(pk=True)
@@ -13,5 +12,3 @@ class Diary(Model):
     updated_at = fields.DatetimeField(auto_now=True)
 
     diary_tags: fields.ReverseRelation["DiaryTag"]
-    diary_emotion_keywords: fields.ReverseRelation["DiaryEmotionKeyword"]
-    transactions: fields.ReverseRelation["TransactionHistory"]
