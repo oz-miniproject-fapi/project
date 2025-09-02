@@ -1,3 +1,4 @@
+# app/api/v1/diary.py
 from fastapi import APIRouter, Depends, HTTPException
 from typing import List, Optional
 from datetime import date
@@ -8,7 +9,7 @@ from app.utils.jwt import get_current_user
 
 router = APIRouter(prefix="/diaries", tags=["diaries"])
 
-# --- CRUD + 태그 포함 ---
+# --- 일기 생성 ---
 @router.post("/", response_model=DiaryResponse)
 async def create_diary(diary: DiaryCreate, current_user: User = Depends(get_current_user)):
     return await DiaryService.create_diary_with_tags(
@@ -18,6 +19,7 @@ async def create_diary(diary: DiaryCreate, current_user: User = Depends(get_curr
         tag_names=diary.tags
     )
 
+# --- 단일 일기 조회 ---
 @router.get("/{diary_id}", response_model=DiaryResponse)
 async def get_diary(diary_id: int, current_user: User = Depends(get_current_user)):
     diary = await DiaryService.get_diary(current_user.id, diary_id)
@@ -34,6 +36,7 @@ async def get_diary(diary_id: int, current_user: User = Depends(get_current_user
         updated_at=diary.updated_at
     )
 
+# --- 전체 일기 조회 ---
 @router.get("/", response_model=List[DiaryResponse])
 async def list_diaries(oldest_first: Optional[bool] = False, current_user: User = Depends(get_current_user)):
     diaries = await DiaryService.list_diaries(current_user.id, oldest_first)
@@ -51,6 +54,7 @@ async def list_diaries(oldest_first: Optional[bool] = False, current_user: User 
         for d in diaries
     ]
 
+# --- 일기 수정 ---
 @router.put("/{diary_id}", response_model=DiaryResponse)
 async def update_diary(diary_id: int, diary_update: DiaryUpdate, current_user: User = Depends(get_current_user)):
     diary = await DiaryService.get_diary(current_user.id, diary_id)
@@ -73,6 +77,7 @@ async def update_diary(diary_id: int, diary_update: DiaryUpdate, current_user: U
         updated_at=updated_diary.updated_at
     )
 
+# --- 일기 삭제 ---
 @router.delete("/{diary_id}")
 async def delete_diary(diary_id: int, current_user: User = Depends(get_current_user)):
     diary = await DiaryService.get_diary(current_user.id, diary_id)
@@ -83,8 +88,12 @@ async def delete_diary(diary_id: int, current_user: User = Depends(get_current_u
 
 # --- 검색 ---
 @router.get("/search", response_model=List[DiaryResponse])
-async def search_diaries(title: Optional[str] = None, diary_date: Optional[date] = None,
-                          oldest_first: Optional[bool] = False, current_user: User = Depends(get_current_user)):
+async def search_diaries(
+    title: Optional[str] = None,
+    diary_date: Optional[date] = None,
+    oldest_first: Optional[bool] = False,
+    current_user: User = Depends(get_current_user)
+):
     diaries = await DiaryService.search_diaries(current_user.id, title, diary_date, oldest_first)
     return [
         DiaryResponse(

@@ -1,9 +1,12 @@
 from app.models.diary import Diary
+from app.models.user import User
 
 class DiaryRepository:
     @staticmethod
     async def create_diary(user_id: int, title: str, content: str):
-        return await Diary.create(user_id=user_id, title=title, content=content)
+        # User 객체 조회 후 ForeignKey 전달
+        user = await User.get(id=user_id)
+        return await Diary.create(user=user, title=title, content=content)
 
     @staticmethod
     async def get_diary_by_id(user_id: int, diary_id: int):

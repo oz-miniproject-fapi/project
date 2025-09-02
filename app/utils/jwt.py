@@ -1,4 +1,3 @@
-# app/utils/jwt.py
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer
 import jwt
@@ -11,7 +10,7 @@ security = HTTPBearer()
 
 def decode_access_token(token: str) -> dict:
     """
-    JWT Access Token을 디코딩하고 payload 반환
+    JWT Access Token 디코딩
     """
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
