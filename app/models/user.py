@@ -1,4 +1,3 @@
-# app/models/user.py
 from tortoise import fields, models
 
 class User(models.Model):
@@ -10,3 +9,5 @@ class User(models.Model):
     phone = fields.CharField(max_length=20, null=True)
     is_verified = fields.BooleanField(default=False)
     created_at = fields.DatetimeField(auto_now_add=True)
+
+    diaries: fields.ReverseRelation["Diary"]

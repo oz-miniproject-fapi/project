@@ -1,6 +1,4 @@
-# app/models/diary.py
 from tortoise import fields, models
-from app.models.tag import Tag
 
 class Diary(models.Model):
     id = fields.IntField(pk=True)
@@ -10,7 +8,16 @@ class Diary(models.Model):
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)
 
-    # 다대다 관계
-    tags: fields.ManyToManyRelation[Tag] = fields.ManyToManyField(
-        "models.Tag", related_name="diary_tags", through="diary_tag"
+    # Tag와 다대다
+    tags: fields.ManyToManyRelation["Tag"] = fields.ManyToManyField(
+        "models.Tag",
+        related_name="diaries",   # Tag에서 접근할 때 diaries
+        through="diary_tag"
+    )
+
+    # EmotionKeyword와 다대다
+    emotion_keywords: fields.ManyToManyRelation["EmotionKeyword"] = fields.ManyToManyField(
+        "models.EmotionKeyword",
+        related_name="diaries",   # EmotionKeyword에서 접근할 때 diaries
+        through="diary_emotion"
     )

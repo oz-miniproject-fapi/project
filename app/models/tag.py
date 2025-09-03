@@ -1,8 +1,7 @@
-from tortoise.models import Model
-from tortoise import fields
+from tortoise import fields, models
 
-class Tag(Model):
+class Tag(models.Model):
     id = fields.IntField(pk=True)
     name = fields.CharField(max_length=50, unique=True)
 
-    diary_tags: fields.ReverseRelation["Diary"]
+    diaries: fields.ReverseRelation["Diary"]

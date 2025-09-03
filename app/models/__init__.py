@@ -1,4 +1,4 @@
-# app/models/__init__.py
 from .user import User
-from .diary import Diary
 from .tag import Tag
+from .diary import Diary
+from .emotion_keyword import EmotionKeyword
